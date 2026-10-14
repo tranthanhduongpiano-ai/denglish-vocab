@@ -1,8 +1,9 @@
 # Denglish Vocabulary (iPhone)
 
 App sổ từ vựng của Denglish chạy hẳn trên điện thoại: thẻ lật vuốt trái / phải /
-lên, nhắc ôn đúng lúc theo 5 cấp như Mochi, AI (Gemini) soạn phiên âm, nghĩa,
-ví dụ, ảnh minh hoạ. Ôn được cả khi máy tính tắt hay mất mạng.
+lên xen kẽ thẻ gõ từ (chỉ hiện nghĩa, gõ lại từ tiếng Anh), nhắc ôn đúng lúc theo
+5 cấp như Mochi, AI (Gemini) soạn phiên âm, nghĩa, ví dụ, ảnh minh hoạ. Ôn được
+cả khi máy tính tắt hay mất mạng.
 
 Mở: https://tranthanhduongpiano-ai.github.io/denglish-vocab/
 
@@ -31,6 +32,7 @@ Gộp dữ liệu hai máy: mỗi thẻ có mốc sửa đổi, bản nào sửa
 |---|---|
 | `index.html`, `app.css` | Khung trang, giao diện |
 | `js/app.js` | Giao diện: bảng ôn, thêm từ, sổ từ, thẻ lật vuốt, cài đặt, quét mã |
+| `js/typecard.js`, `typecard.css` | Thẻ gõ từ — dùng chung với trang Vocabulary trên laptop, sửa thì chép sang `dictation-app/static` |
 | `js/store.js` | Sổ từ và lịch ôn 5 cấp (giống `vocab.py` của Denglish) |
 | `js/sync.js` | Đồng bộ với kho GitHub riêng tư |
 | `js/ai.js`, `js/prompts.js` | Gemini soạn thẻ, tách từ trong file ghi chú |
