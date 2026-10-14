@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#1f9d52" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="Denglish" />
+<meta name="description" content="Sổ từ vựng Denglish: thẻ lật, nhắc ôn đúng lúc." />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+<link rel="icon" href="icons/icon-192.png" />
+<title>Denglish Vocabulary</title>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="app.css" />
+<script>
+  // Giao dien sang / toi: theo lua chon da luu, khong co thi theo iPhone
+  (function () {
+    var t = null;
+    try { t = localStorage.getItem('denglish.theme'); } catch (e) {}
+    if (!t) t = window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.dataset.theme = t;
+  })();
+</script>
+</head>
+<body>
+
+<header class="appbar">
+  <span class="brand">D<b>english</b></span>
+  <span class="crumb-sep">/</span>
+  <span class="crumb">Vocabulary</span>
+  <div class="spacer"></div>
+  <button class="sync-pill" id="syncPill" title="Đồng bộ với máy tính">☁</button>
+  <button class="btn btn-sm btn-ghost" id="settingsBtn" title="Cài đặt">⚙</button>
+  <button class="btn btn-sm btn-ghost" id="themeBtn" title="Sáng / tối">🌓</button>
+</header>
+
+<main class="page vpage">
+  <div id="welcome"></div>
+
+  <!-- ============ TONG QUAN ON TAP ============ -->
+  <section class="vcard ov" id="overview" aria-label="Ôn tập">
+    <div class="ov-head">
+      <h1 class="ov-title">Ôn tập</h1>
+      <div class="ov-stats" id="ovStats"></div>
+    </div>
+    <div class="chart" id="chart"></div>
+    <div class="axis"></div>
+    <div class="lvls"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>
+    <p class="due-line" id="dueLine">&nbsp;</p>
+    <button class="go" id="goBtn" disabled>Ôn tập ngay</button>
+    <div class="ov-more" id="ovMore"></div>
+    <div class="ov-note" id="ovNote"></div>
+  </section>
+
+  <!-- ============ THEM TU ============ -->
+  <section class="vcard" id="addBox">
+    <h2>Thêm từ vựng</h2>
+    <p class="vsub">Từ đơn, cụm từ hay thành ngữ đều được — mỗi dòng một mục, có thể ghi nghĩa sau dấu “:” hoặc “-”.
+      AI tự soạn phiên âm, cấp độ A1–C2, nghĩa Anh và Việt, 4 câu ví dụ, ảnh minh hoạ.</p>
+    <div class="add-grid">
+      <textarea class="add-text" id="addText" spellcheck="false" autocapitalize="off"
+        placeholder="serendipity&#10;break the ice: phá vỡ sự ngại ngùng&#10;take sth for granted"></textarea>
+      <label class="drop" id="drop">
+        <span class="dz-i">📎</span>
+        <span><b>Tải file ghi chú</b><br><span>.md · .txt · .docx · .pdf — chọn trong ứng dụng Tệp</span></span>
+        <input type="file" id="fileInput" hidden accept=".md,.markdown,.txt,.text,.docx,.pdf,.csv,.tsv,text/plain,text/markdown,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
+      </label>
+    </div>
+    <div class="preview" id="preview"></div>
+    <div class="add-foot">
+      <button class="btn btn-primary" id="addBtn" disabled>Thêm</button>
+      <button class="btn btn-sm btn-ghost hidden" id="smartBtn">✨ Tách lại bằng AI</button>
+      <span class="add-msg" id="addMsg"></span>
+    </div>
+  </section>
+
+  <!-- ============ SO TU ============ -->
+  <section class="vcard" id="listBox">
+    <div class="list-head">
+      <h2>Sổ từ <small id="count"></small></h2>
+      <input type="search" class="search" id="q" placeholder="Tìm từ hoặc nghĩa…" autocomplete="off" />
+    </div>
+    <div class="chips" id="filters"></div>
+    <div class="wlist" id="wlist"><div class="empty">Đang mở sổ từ…</div></div>
+    <button class="btn btn-sm more hidden" id="moreBtn">Xem thêm</button>
+  </section>
+</main>
+
+<!-- ============ BANG (chi tiet the, cai dat, quet ma) ============ -->
+<div class="sheet-wrap hidden" id="sheetWrap"><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
+
+<!-- ============ MAN HINH ON TAP ============ -->
+<div class="study hidden" id="study" aria-label="Ôn tập thẻ">
+  <div class="edge l"></div><div class="edge r"></div><div class="edge t"></div>
+  <div class="st-top">
+    <button class="st-btn" id="stClose" title="Đóng">✕</button>
+    <div class="st-prog">
+      <div class="bar"><i id="stBar"></i></div>
+      <div class="st-meta"><span class="st-mode" id="stMode"></span><span class="tally" id="stTally"></span></div>
+    </div>
+    <button class="st-btn" id="stUndo" title="Hoàn tác" disabled>↶</button>
+    <button class="st-btn" id="stGear" title="Tuỳ chọn">⚙</button>
+  </div>
+  <div class="stage" id="stage"></div>
+  <div class="st-actions" id="stActions">
+    <button class="act k" data-grade="know"><span class="ic">←</span>Thuộc</button>
+    <button class="act v" data-grade="vague"><span class="ic">↑</span>Mang máng</button>
+    <button class="act u" data-grade="unknown"><span class="ic">→</span>Chưa thuộc</button>
+  </div>
+  <div class="st-keys">Phím: Space lật thẻ · ← thuộc · ↑ mang máng · → chưa thuộc · Ctrl+Z hoàn tác</div>
+</div>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
