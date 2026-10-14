@@ -1,0 +1,84 @@
+/* Denglish - the "go tu" (xem js/typecard.js). Dung chung cho laptop va app iPhone - sua thi chep sang ben kia. */
+.fc-type { cursor: default; }
+/* Noi dung dat o nua tren the: ban phim iPhone che nua duoi */
+.fc-type .front { justify-content: flex-start; padding: clamp(54px, 11%, 84px) 18px 16px; }
+.ty { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.ty-label {
+  font-size: .72rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--text-fade);
+}
+.ty-vi {
+  font-size: clamp(1.35rem, 6vw, 1.8rem); font-weight: 800; color: var(--accent); line-height: 1.3;
+  max-width: 380px; word-break: break-word;
+}
+.ty-vi.long { font-size: 1.12rem; }
+
+/* o gach chan: moi chu cai mot o, moi tu mot nhom */
+.ty-box { position: relative; width: 100%; padding: 6px 0 2px; }
+.ty-slots { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px 18px; --sz: 1.7rem; }
+.ty-slots.sm { --sz: 1.38rem; gap: 12px 14px; }
+.ty-slots.xs { --sz: 1.12rem; gap: 12px 12px; }
+.ty-w { display: inline-flex; align-items: flex-end; gap: 4px; }
+.ty-s, .ty-p {
+  height: calc(var(--sz) * 1.5); display: flex; align-items: flex-end; justify-content: center;
+  font-style: normal; font-size: calc(var(--sz) * .92); font-weight: 700; line-height: 1; padding-bottom: 5px;
+}
+.ty-s {
+  width: var(--sz); border-bottom: 3px solid color-mix(in srgb, var(--text) 28%, transparent); color: var(--text);
+  transition: border-color .12s, color .12s;
+}
+.ty-p { color: var(--text-dim); padding-left: 1px; padding-right: 1px; }
+.ty-s.hint:not(.on) { color: var(--text-fade); }
+.ty-s.cur { border-bottom-color: var(--accent); animation: ty-blink 1.1s ease-in-out infinite; }
+@keyframes ty-blink { 50% { border-bottom-color: color-mix(in srgb, var(--accent) 25%, transparent); } }
+.ty-s.ok { border-bottom-color: var(--know); color: var(--know); }
+.ty-s.bad { border-bottom-color: var(--unknown); color: var(--unknown); }
+.ty-s.miss { border-bottom-color: var(--unknown); }
+.ty-s.ins, .ty-s.ins-end { position: relative; }
+.ty-s.ins::before, .ty-s.ins-end::after {   /* go thua chu o day */
+  content: ''; position: absolute; left: -4px; bottom: 2px; width: 3px; height: 62%; border-radius: 2px; background: var(--unknown);
+}
+.ty-s.ins-end::after { left: auto; right: -4px; }
+/* o nhap that nam an tren cac o (cham vao o la mo ban phim) */
+.ty-in {
+  position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; padding: 0; border: 0; outline: none;
+  opacity: 0; background: transparent; color: transparent; caret-color: transparent;
+  font-size: 16px;      /* iOS phong to trang neu chu nho hon 16px */
+  -webkit-user-select: text; user-select: text; cursor: text;
+}
+.ty-done .ty-in { pointer-events: none; }
+
+.ty-res { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.ty-res:empty { display: none; }
+.ty-verdict { font-weight: 800; font-size: .95rem; }
+.ty-verdict.know { color: var(--know); }
+.ty-verdict.vague { color: var(--vague); }
+.ty-verdict.unknown { color: var(--unknown); }
+.ty-verdict.skip { color: var(--text-fade); font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; }
+.ty-ans {
+  display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center;
+  font-size: 1.45rem; font-weight: 800; letter-spacing: -.01em; line-height: 1.3;
+}
+.ty-ans u { text-decoration: none; color: var(--unknown); border-bottom: 3px solid var(--unknown); }
+.ty-ans .spk { padding: 4px 10px; font-size: .85rem; }
+.ty-ipa { font-size: .9rem; color: var(--text-dim); }
+
+.ty-btns { display: flex; gap: 10px; width: 100%; max-width: 340px; margin-top: 2px; }
+.ty-btns button {
+  flex: 1; padding: 12px 10px; border-radius: 14px; font-size: .95rem; font-weight: 700;
+  color: var(--text-dim); background: var(--surface-2); border: 1px solid var(--border);
+}
+.ty-btns button.primary { color: var(--accent-ink); background: var(--accent); border-color: transparent; }
+.ty-btns button:active { transform: scale(.97); }
+.ty-tip { font-size: .76rem; color: var(--text-fade); text-align: center; }
+
+/* da cham: vien the theo ket qua */
+.fc-type.ty-know .front { box-shadow: inset 0 0 0 3px var(--know); }
+.fc-type.ty-vague .front { box-shadow: inset 0 0 0 3px var(--vague); }
+.fc-type.ty-unknown .front { box-shadow: inset 0 0 0 3px var(--unknown); }
+.fc-type .back { cursor: pointer; }
+
+@media (max-height: 620px) {
+  .fc-type .front { padding-top: 46px; }
+  .ty { gap: 9px; }
+  .ty-vi { font-size: 1.25rem; }
+}

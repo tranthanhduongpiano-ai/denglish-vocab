@@ -25,7 +25,7 @@ const DIR_GRADE = { left: 'know', up: 'vague', right: 'unknown' };
 const GRADE_DIR = { know: 'left', vague: 'up', unknown: 'right' };
 const spin = '<span class="spin" style="display:inline-block;vertical-align:-3px"></span> ';
 
-const prefs = { autoplay: true, reverse: false, size: 20, coached: false };
+const prefs = { autoplay: true, reverse: false, size: 20, coached: false, typing: true };
 let cards = [];
 let summary = null;
 let filter = { q: '', level: 'all' };
@@ -789,7 +789,11 @@ function renderStage(opts) {
   const stage = $('stage');
   stage.innerHTML = '';
   updateTop();
-  $('stActions').style.visibility = St.pos >= St.cards.length ? 'hidden' : 'visible';
+  // The go tu (js/typecard.js) xen ke voi the vuot
+  TypeCard.decide(St.cards, St.pos, prefs.typing);
+  TypeCard.decide(St.cards, St.pos + 1, prefs.typing);
+  const typing = St.pos < St.cards.length && St.cards[St.pos]._type === 'type';
+  $('stActions').style.visibility = St.pos >= St.cards.length || typing ? 'hidden' : 'visible';
   if (St.pos >= St.cards.length) { showDone(); return; }
   const next = St.cards[St.pos + 1];
   if (next) { const b = makeCard(next); b.classList.add('behind'); stage.appendChild(b); }
@@ -799,7 +803,8 @@ function renderStage(opts) {
   hydrate(stage);
   fitBack(top);
   if (next) fitBack(stage.querySelector('.fc.behind'));
-  bindDrag(top, St.cards[St.pos]);
+  if (typing) bindType(top, St.cards[St.pos]);
+  else bindDrag(top, St.cards[St.pos]);
   if (opts.from) {
     top.style.transform = flyTransform(opts.from, 0, 0);
     top.style.opacity = '0';
@@ -813,17 +818,23 @@ function renderStage(opts) {
 
 function makeCard(card) {
   const el = document.createElement('div');
-  el.className = 'fc';
+  const typing = card._type === 'type';
+  el.className = 'fc' + (typing ? ' fc-type' : '');
   el.dataset.id = card.id;
-  el.innerHTML = '<div class="fc-in"><div class="face front">' + frontHtml(card) + '</div><div class="face back">' + backHtml(card) + '</div></div>' +
+  el.innerHTML = '<div class="fc-in"><div class="face front">' + (typing ? TypeCard.html(card, frontTags(card)) : frontHtml(card)) +
+    '</div><div class="face back">' + backHtml(card) + '</div></div>' +
     '<div class="tint"></div><div class="stamp k">THUỘC ✓</div><div class="stamp u">CHƯA THUỘC ✗</div><div class="stamp v">MANG MÁNG ~</div>';
   return el;
 }
 
-function frontHtml(c) {
+function frontTags(c) {
   const lv = c.level ? '<span class="tag lvl" style="--c:' + LEVEL_COLORS[c.level] + '">Cấp ' + c.level + '</span>' : '<span class="tag">Từ mới</span>';
   const again = c._again ? '<span class="tag" style="color:var(--unknown)">Gặp lại</span>' : '';
-  let h = '<div class="fr-tags">' + lv + again + '<span>' + (c.cefr ? '<span class="tag cefr">' + esc(c.cefr) + '</span>' : '') + '</span></div>';
+  return '<div class="fr-tags">' + lv + again + '<span>' + (c.cefr ? '<span class="tag cefr">' + esc(c.cefr) + '</span>' : '') + '</span></div>';
+}
+
+function frontHtml(c) {
+  let h = frontTags(c);
   if (prefs.reverse && c.meaning_vi) {
     h += '<div class="fr-emoji">' + esc(c.emoji || '') + '</div><div class="fr-term vi' + (c.meaning_vi.length > 22 ? ' long' : '') + '">' + esc(c.meaning_vi) + '</div>';
     if (c.kind && c.kind !== 'word') h += '<div class="fr-sub">' + esc(KIND_VI[c.kind] || c.kind) + '</div>';
@@ -944,6 +955,25 @@ function bindDrag(el, card) {
   });
 }
 
+/** The go tu: go xong bam Tiep thi bay di theo ket qua (giong vuot); da cham thi cham vao the de lat xem */
+function bindType(el, card) {
+  TypeCard.mount(el, card, {
+    accent: audio.currentAccent(),
+    result: () => { if (prefs.autoplay) audio.sayTerm(card); },
+    done: (grade) => commit(grade),
+  });
+  el.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-say], [data-more]');
+    if (b) {
+      e.stopPropagation();
+      if (b.dataset.say != null) audio.sayTerm(card, b.dataset.say, b);
+      else openDetail(card.id);
+      return;
+    }
+    if (el.classList.contains('flipped') && !e.target.closest('button, a, input')) el.classList.remove('flipped');
+  });
+}
+
 function flyTransform(dir, dx, dy) {
   const w = window.innerWidth, h = window.innerHeight;
   if (dir === 'left') return 'translate(' + (-w * 1.2) + 'px,' + (dy + 60) + 'px) rotate(-24deg)';
@@ -974,7 +1004,7 @@ function record(grade) {
   const again = !!card._again;
   const entry = { pos: St.pos, card, grade, tallied: !again, requeued: false };
   if (!again) { St.tally[grade]++; St.results.set(card.id, { card, grade }); }
-  if (grade === 'unknown') { St.cards.push(Object.assign({}, card, { _again: true })); entry.requeued = true; }
+  if (grade === 'unknown') { St.cards.push(Object.assign({}, card, { _again: true, _type: '', _hint: null })); entry.requeued = true; }
   St.history.push(entry);
   if (!St.practice) store.answer(card.id, grade, St.session).catch(e => toast(e.message));
   St.pos++;
@@ -1001,6 +1031,13 @@ document.addEventListener('keydown', (e) => {
   if (k === 'Escape') { if ($('stagePop')) closePop(); else closeStudy(); return; }
   if ((e.ctrlKey || e.metaKey) && k.toLowerCase() === 'z') { e.preventDefault(); undo(); return; }
   if (St.pos >= St.cards.length) return;
+  if (St.cards[St.pos]._type === 'type') {        // the go tu: phim de go, Enter de kiem tra / sang the
+    const t = topCard();
+    if (!t || !t._ty) return;
+    if (k === 'Enter') { e.preventDefault(); t._ty.enter(); }
+    else if (k.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) t._ty.focus();
+    return;
+  }
   if (k === ' ' || k === 'Enter') { e.preventDefault(); flip(); }
   else if (k === 'ArrowLeft') { e.preventDefault(); commit('know'); }
   else if (k === 'ArrowRight') { e.preventDefault(); commit('unknown'); }
@@ -1015,6 +1052,7 @@ function showCoach() {
     '<div><span class="ar" style="--c:var(--unknown)">→</span><span>Vuốt <b>phải</b>: <b>chưa thuộc</b> — gặp lại cuối lượt</span></div>' +
     '<div><span class="ar" style="--c:var(--vague)">↑</span><span>Vuốt <b>lên</b>: nhớ <b>mang máng</b></span></div>' +
     '<div><span class="ar" style="--c:var(--text-fade)">👆</span><span><b>Chạm</b> để lật xem nghĩa, ví dụ, ảnh</span></div>' +
+    '<div><span class="ar" style="--c:var(--accent)">⌨</span><span>Xen kẽ có thẻ <b>gõ từ</b>: chỉ hiện nghĩa, gõ lại từ tiếng Anh</span></div>' +
     '</div><button class="go" style="font-size:1.05rem;padding:13px">Bắt đầu</button></div>';
   $('study').appendChild(c);
   c.querySelector('button').onclick = () => { c.remove(); prefs.coached = true; setMeta('prefs', prefs); };
@@ -1029,11 +1067,18 @@ $('stGear').onclick = () => {
   p.innerHTML =
     '<label class="opt-row">Tự đọc khi lật thẻ<input type="checkbox" id="oAuto"' + (prefs.autoplay ? ' checked' : '') + ' /></label>' +
     '<label class="opt-row">Mặt trước là nghĩa tiếng Việt<input type="checkbox" id="oRev"' + (prefs.reverse ? ' checked' : '') + ' /></label>' +
+    '<label class="opt-row">Xen kẽ thẻ gõ từ<input type="checkbox" id="oType"' + (prefs.typing ? ' checked' : '') + ' /></label>' +
     '<label class="opt-row">Giọng đọc<select id="oAcc"><option value="uk">Anh (UK)</option><option value="us">Mỹ (US)</option></select></label>';
   $('study').appendChild(p);
   $('oAcc').value = audio.currentAccent();
   $('oAuto').onchange = (e) => { prefs.autoplay = e.target.checked; setMeta('prefs', prefs); };
   $('oRev').onchange = (e) => { prefs.reverse = e.target.checked; setMeta('prefs', prefs); renderStage({ still: true }); };
+  $('oType').onchange = (e) => {
+    prefs.typing = e.target.checked;
+    setMeta('prefs', prefs);
+    St.cards.forEach((c, i) => { if (i >= St.pos) c._type = ''; });      // chon lai kieu cho cac the con lai
+    renderStage({ still: true });
+  };
   $('oAcc').onchange = (e) => { setMeta('accent', e.target.value); audio.setAccentCache(e.target.value); audio.prefetch(St.cards); renderStage({ still: true }); };
 };
 document.addEventListener('pointerdown', (e) => {
@@ -1068,7 +1113,7 @@ function showDone() {
     if (!b) return;
     const k = b.dataset.done;
     if (k === 'close') closeStudy();
-    else if (k === 'weak') startStudy('practice', { cards: weak.map(c => Object.assign({}, c, { _again: false })), practice: true });
+    else if (k === 'weak') startStudy('practice', { cards: weak.map(c => Object.assign({}, c, { _again: false, _type: '', _hint: null })), practice: true });
     else startStudy(k);
   };
 }

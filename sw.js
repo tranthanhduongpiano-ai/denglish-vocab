@@ -1,10 +1,10 @@
 /* Denglish Vocab (iPhone) - service worker: luu khung app de mo duoc ca khi khong co mang.
  * Doi CACHE moi lan cap nhat app de iPhone tai ban moi. */
-const CACHE = 'denglish-vocab-v2';
+const CACHE = 'denglish-vocab-v3';
 const SHELL = [
-  './', 'index.html', 'app.css', 'manifest.webmanifest',
+  './', 'index.html', 'app.css', 'typecard.css', 'manifest.webmanifest',
   'js/app.js', 'js/store.js', 'js/db.js', 'js/util.js', 'js/parse.js', 'js/ai.js', 'js/prompts.js',
-  'js/images.js', 'js/audio.js', 'js/sync.js',
+  'js/images.js', 'js/audio.js', 'js/sync.js', 'js/typecard.js',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png',
 ];
 // Thu vien / font tu CDN: luu lai sau lan tai dau
