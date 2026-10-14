@@ -46,12 +46,23 @@ async function boot() {
     scheduleRefresh();
     if (what !== 'sync') sync.requestSync();
     if (['add', 'regen', 'sync'].includes(what)) setTimeout(() => enrichPending(), 300);
+    if (what === 'sync') prefetchSoon();
   });
   sync.onState(renderSyncPill);
   onAi(() => scheduleRefresh());
   await sync.startAutoSync();
   enrichPending();
+  prefetchSoon();
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+
+/** Tai san giong doc Oxford cua cac the sap on, de lat the la nghe ngay (ca khi mat mang) */
+let prefetchTimer = null;
+function prefetchSoon() {
+  clearTimeout(prefetchTimer);
+  prefetchTimer = setTimeout(() => {
+    audio.prefetch(store.sessionCards('review', 40).concat(store.sessionCards('new', prefs.size)));
+  }, 2500);
 }
 
 let refreshTimer = null;
