@@ -312,6 +312,7 @@ body { -webkit-tap-highlight-color: transparent; }
 .note { line-height: 1.6; color: var(--text-dim); font-size: .92rem; }
 .ctx { padding: 10px 14px; border-left: 3px solid var(--blue); background: color-mix(in srgb, var(--blue) 7%, var(--surface)); border-radius: 0 12px 12px 0; line-height: 1.6; font-size: .92rem; }
 .ctx mark { background: color-mix(in srgb, var(--amber) 35%, transparent); color: inherit; border-radius: 3px; padding: 0 2px; }
+.ctx .ctx-vi { color: var(--text-dim); font-size: .86rem; margin-top: 3px; }
 .ctx small { display: block; color: var(--text-fade); margin-top: 4px; font-size: .74rem; }
 .ctx small a { color: var(--blue); }
 .srs { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border); font-size: .84rem; color: var(--text-dim); line-height: 1.6; }

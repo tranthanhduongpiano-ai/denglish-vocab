@@ -68,14 +68,14 @@ export function get(id) {
 }
 
 /* ---------- them / sua / xoa ---------- */
-function newCard(term, note, context, source, sourceUrl) {
+function newCard(term, note, context, source, sourceUrl, contextVi) {
   const now = isoSec(Date.now());
   return {
     id: newId(), term, keys: [norm(term)],
     kind: '', pos: '', cefr: '', ipa_uk: '', ipa_us: '', audio: false, ox_url: '',
     def_en: '', meaning_vi: '', examples: [], synonyms: [], note_vi: '',
     emoji: '', image: '', image_query: '', image_credit: '', image_state: '',
-    user_note: note || '', context: context || '', source: source || '', source_url: sourceUrl || '',
+    user_note: note || '', context: context || '', context_vi: contextVi || '', source: source || '', source_url: sourceUrl || '',
     status: 'pending', error: '', engine: '',
     level: 0, interval: 0, due: '', reviews: 0, lapses: 0,
     last_grade: '', last_review: '', session: '',
@@ -97,8 +97,10 @@ export async function addItems(items) {
       if (!existing.includes(hit)) existing.push(hit);
       continue;
     }
-    const c = newCard(term, note, String(it.context || '').replace(/\s+/g, ' ').trim().slice(0, 400),
-                      String(it.source || '').slice(0, 200), '');
+    const context = String(it.context || '').replace(/\s+/g, ' ').trim().slice(0, 400);
+    // context_vi: ban dich cau trong bai (bai Dictation) - AI lay nghia theo dung cach dich nay
+    const contextVi = context ? String(it.context_vi || '').replace(/\s+/g, ' ').trim().slice(0, 600) : '';
+    const c = newCard(term, note, context, String(it.source || '').slice(0, 200), String(it.source_url || '').slice(0, 300), contextVi);
     S.cards.set(c.id, c);
     idx.set(key, c);
     added.push(c);
@@ -109,7 +111,7 @@ export async function addItems(items) {
 }
 
 const EDIT_TEXT = { term: 80, meaning_vi: 200, def_en: 400, ipa_uk: 80, ipa_us: 80, pos: 40,
-                    note_vi: 600, user_note: 300, emoji: 16, context: 400 };
+                    note_vi: 600, user_note: 300, emoji: 16, context: 400, context_vi: 600 };
 
 export function cleanExamples(items) {
   const out = [];

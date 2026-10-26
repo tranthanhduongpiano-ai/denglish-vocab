@@ -32,6 +32,8 @@ Gộp dữ liệu hai máy: mỗi thẻ có mốc sửa đổi, bản nào sửa
 |---|---|
 | `index.html`, `app.css` | Khung trang, giao diện |
 | `js/app.js` | Giao diện: bảng ôn, thêm từ, sổ từ, thẻ lật vuốt, cài đặt, quét mã |
+| `dictation.html`, `js/dictation.js`, `dictation.css` | Luyện nghe – chép các bài Dictation đã tạo trên máy tính (máy tính gửi bài lên `lessons/` trong kho riêng tư) |
+| `js/wordpop.js` | Bảng tra từ — giống hệt `dictation-app/static/js/wordpop.js`, sửa thì chép sang |
 | `js/typecard.js`, `typecard.css` | Thẻ gõ từ — dùng chung với trang Vocabulary trên laptop, sửa thì chép sang `dictation-app/static` |
 | `js/store.js` | Sổ từ và lịch ôn 5 cấp (giống `vocab.py` của Denglish) |
 | `js/sync.js` | Đồng bộ với kho GitHub riêng tư |

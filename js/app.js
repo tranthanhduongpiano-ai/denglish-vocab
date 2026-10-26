@@ -435,7 +435,7 @@ function renderDetail(c) {
   }
   if ((c.synonyms || []).length) h += '<div class="sh-sec"><h4>Đồng nghĩa</h4><div class="syns">' + c.synonyms.map(s => '<span class="tag">' + esc(s) + '</span>').join('') + '</div></div>';
   if (c.note_vi) h += '<div class="sh-sec"><h4>Cách dùng</h4><div class="note">' + esc(c.note_vi) + '</div></div>';
-  if (c.context) h += '<div class="sh-sec"><h4>Gặp trong</h4><div class="ctx">' + markIn(c.context, c) + (c.source ? '<small>' + esc(c.source) + '</small>' : '') + '</div></div>';
+  if (c.context) h += '<div class="sh-sec"><h4>Gặp trong</h4><div class="ctx">' + markIn(c.context, c) + (c.context_vi ? '<div class="ctx-vi">' + esc(c.context_vi) + '</div>' : '') + (c.source ? '<small>' + esc(c.source) + '</small>' : '') + '</div></div>';
   if (c.user_note) h += '<div class="sh-sec"><h4>Ghi chú của bạn</h4><div class="note">' + esc(c.user_note) + '</div></div>';
   if (c.status === 'basic' && c.error) h += '<div class="sh-warn">⚠ ' + esc(c.error) + '</div>';
   const srs = [c.level ? 'Cấp ' + c.level + (c.due ? ' · ôn lại ' + (new Date(c.due) <= new Date() ? '<b>bây giờ</b>' : esc(relTime(c.due))) : '') : 'Chưa học lần nào'];

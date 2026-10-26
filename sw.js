@@ -1,14 +1,14 @@
 /* Denglish Vocab (iPhone) - service worker: luu khung app de mo duoc ca khi khong co mang.
  * Doi CACHE moi lan cap nhat app de iPhone tai ban moi. */
-const CACHE = 'denglish-vocab-v4';
+const CACHE = 'denglish-vocab-v5';
 const SHELL = [
-  './', 'index.html', 'app.css', 'typecard.css', 'manifest.webmanifest',
+  './', 'index.html', 'dictation.html', 'app.css', 'typecard.css', 'dictation.css', 'manifest.webmanifest',
   'js/app.js', 'js/store.js', 'js/db.js', 'js/util.js', 'js/parse.js', 'js/ai.js', 'js/prompts.js',
-  'js/images.js', 'js/audio.js', 'js/sync.js', 'js/typecard.js',
+  'js/images.js', 'js/audio.js', 'js/sync.js', 'js/typecard.js', 'js/wordpop.js', 'js/dictation.js',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png',
 ];
 // Thu vien / font tu CDN: luu lai sau lan tai dau
-const RUNTIME_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com', 'cdnjs.cloudflare.com', 'cdn.jsdelivr.net'];
+const RUNTIME_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com', 'cdnjs.cloudflare.com', 'cdn.jsdelivr.net', 'i.ytimg.com'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
