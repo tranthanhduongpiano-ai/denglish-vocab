@@ -135,6 +135,7 @@ function enrichPrompt(jobs) {
   jobs.forEach((j, i) => {
     const lines = ['<item n="' + (i + 1) + '">', 'term: ' + j.term];
     if (j.context) lines.push('câu ngữ cảnh: ' + j.context);
+    if (j.context && j.context_vi) lines.push('bản dịch câu trong bài: ' + j.context_vi);
     if (j.note) lines.push('ghi chú của người học: ' + j.note);
     lines.push('</item>');
     parts.push(lines.join('\n'));
@@ -175,7 +176,7 @@ export async function enrichPending() {
     for (;;) {
       const pending = [...S.cards.values()].filter(c => c.status === 'pending').slice(0, BATCH);
       if (!pending.length) break;
-      const jobs = pending.map(c => ({ id: c.id, term: c.term, context: c.context, note: c.user_note }));
+      const jobs = pending.map(c => ({ id: c.id, term: c.term, context: c.context, context_vi: c.context_vi, note: c.user_note }));
       let data;
       try {
         data = await aiCall(ENRICH_SYSTEM, enrichPrompt(jobs), ENRICH_SCHEMA, 12000);
