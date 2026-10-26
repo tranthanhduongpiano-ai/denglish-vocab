@@ -1,6 +1,6 @@
 /* Denglish Vocab (iPhone) - service worker: luu khung app de mo duoc ca khi khong co mang.
  * Doi CACHE moi lan cap nhat app de iPhone tai ban moi. */
-const CACHE = 'denglish-vocab-v5';
+const CACHE = 'denglish-vocab-v6';
 const SHELL = [
   './', 'index.html', 'dictation.html', 'app.css', 'typecard.css', 'dictation.css', 'manifest.webmanifest',
   'js/app.js', 'js/store.js', 'js/db.js', 'js/util.js', 'js/parse.js', 'js/ai.js', 'js/prompts.js',
@@ -25,8 +25,10 @@ self.addEventListener('fetch', (e) => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (url.origin === self.location.origin) {
-    // Khung app: lay ban moi khi co mang (de cap nhat), mat mang thi dung ban da luu
-    e.respondWith(fetch(req).then(res => {
+    // Khung app: lay ban moi khi co mang (de cap nhat), mat mang thi dung ban da luu.
+    // cache 'no-cache': hoi lai GitHub Pages moi lan, khong dung ban 10 phut trong bo nho trinh duyet
+    // (tranh vua cap nhat xong ma file nay moi, file kia cu).
+    e.respondWith(fetch(req.url, { cache: 'no-cache', credentials: 'same-origin' }).then(res => {
       if (res.ok) { const copy = res.clone(); caches.open(CACHE).then(c => c.put(req, copy)); }
       return res;
     }).catch(() => caches.match(req, { ignoreSearch: true }).then(r => r || caches.match('index.html'))));

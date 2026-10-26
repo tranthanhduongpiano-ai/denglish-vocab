@@ -51,7 +51,12 @@ async function loadIndex() {
   const cached = await getMeta('lessons:index', null);
   if (!navigator.onLine || !(await sync.config())) return cached;
   try {
-    const fresh = await fetchJson('lessons/index.json');
+    // sync.js cu (con trong bo nho dem vai phut sau khi cap nhat) chua co getRawIfAny
+    const raw = sync.getRawIfAny ? await sync.getRawIfAny('lessons/index.json')
+      : await sync.getRaw('lessons/index.json').catch(e => { if (/Không thấy kho/.test(e.message)) return null; throw e; });
+    // Chua co danh sach: Denglish tren may tinh (ban moi) chua gui bai nao len kho
+    if (!raw) return { lessons: [], notYet: true };
+    const fresh = JSON.parse(fromUtf8(raw));
     await setMeta('lessons:index', fresh);
     return fresh;
   } catch (e) {
@@ -97,8 +102,19 @@ async function showList() {
   }
   let index = null;
   try { index = await loadIndex(); }
-  catch (e) { box.innerHTML = '<div class="notice warn">Chưa tải được danh sách bài: ' + esc(e.message) + '</div>'; return; }
+  catch (e) {
+    box.innerHTML = '<div class="notice warn">Chưa tải được danh sách bài: ' + esc(e.message) +
+      '<div class="row" style="margin-top:10px"><button class="btn btn-sm" onclick="location.reload()">↻ Thử lại</button></div></div>';
+    return;
+  }
   const list = (index && index.lessons) || [];
+  if (index && index.notYet) {
+    box.innerHTML = '<div class="notice">Máy tính chưa gửi bài Dictation nào sang đây.<br>' +
+      'Trên máy tính, <b>tắt hẳn cửa sổ Denglish rồi mở lại Denglish.bat</b> (để chạy bản mới). ' +
+      'Khoảng 1 phút sau, kéo xuống hoặc bấm nút dưới đây để tải lại.' +
+      '<div class="row" style="margin-top:10px"><button class="btn btn-sm" onclick="location.reload()">↻ Tải lại</button></div></div>';
+    return;
+  }
   if (!list.length) {
     box.innerHTML = '<div class="notice">Chưa có bài nào. Trên máy tính, mở Denglish và tạo bài Dictation — ' +
       'Denglish tự gửi bài sang đây trong vài phút (cần đã kết nối ☁ Sổ từ trên iPhone).</div>';

@@ -104,6 +104,15 @@ export async function getRaw(path) {
   return new Uint8Array(await r.arrayBuffer());
 }
 
+/** Nhu getRaw, nhung file chua co trong kho thi tra null (vd may tinh chua gui bai Dictation nao) */
+export async function getRawIfAny(path) {
+  const cfg = await config();
+  if (!cfg) throw new SyncError('Chưa kết nối kho.');
+  const branch = await branchOf(cfg);
+  const r = await gh(cfg, 'GET', '/repos/' + cfg.repo + '/contents/' + path + '?ref=' + encodeURIComponent(branch), { raw: true, ok: [200, 404] });
+  return r.status === 404 ? null : new Uint8Array(await r.arrayBuffer());
+}
+
 /** Thu ket noi truoc khi luu */
 export async function check(repo, token) {
   if (!/^[A-Za-z0-9-]{1,39}\/[A-Za-z0-9._-]{1,100}$/.test(repo || '')) throw new SyncError('Tên kho phải có dạng tên-tài-khoản/tên-kho.');
