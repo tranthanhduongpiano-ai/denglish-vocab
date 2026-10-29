@@ -72,6 +72,7 @@ async function loadLesson(vid) {
   if (cached && (!entry || cached.hash === entry.hash || !navigator.onLine)) return cached.data;
   try {
     const data = await fetchJson('lessons/' + vid + '.json');
+    if (cached && cached.data) await remapProgress(vid, cached.data.segments || [], data.segments || []);
     await setMeta('lesson:' + vid, { hash: entry ? entry.hash : '', data });
     return data;
   } catch (e) {
@@ -81,6 +82,30 @@ async function loadLesson(vid) {
 }
 
 const progressKey = (vid) => 'dict:progress:' + vid;
+
+/** May tinh cat lai cau (vd gop "according to experts," vao cau truoc): chuyen tien do sang doan moi theo
+ *  thoi diem cua tung doan cu. Doan moi xong khi moi doan cu nam trong no deu da xong. */
+async function remapProgress(vid, oldSegs, newSegs) {
+  if (!oldSegs.length || !newSegs.length) return;
+  const same = oldSegs.length === newSegs.length && oldSegs.every((s, i) => s.text === newSegs[i].text);
+  const p = await getMeta(progressKey(vid), null);
+  if (same || !p) return;
+  const at = (t) => {
+    let ans = 0;
+    newSegs.forEach((s, i) => { if (s.start <= t + 0.05) ans = i; });
+    return ans;
+  };
+  const map = oldSegs.map(s => at(s.start + Math.min(0.3, (s.end - s.start) / 2)));
+  const done = new Set(p.done || []);
+  const newDone = [];
+  newSegs.forEach((s, j) => {
+    const olds = map.map((m, k) => (m === j ? k : -1)).filter(k => k >= 0);
+    if (olds.length && olds.every(k => done.has(k))) newDone.push(j);
+  });
+  p.index = map[Math.min(p.index || 0, map.length - 1)] || 0;
+  p.done = newDone;
+  await setMeta(progressKey(vid), p);
+}
 
 function fmtDur(sec) {
   sec = Math.round(sec || 0);
