@@ -95,6 +95,10 @@ function pickVoice(lang) {
          voices.find(v => norm(v) === lang) || voices.find(v => norm(v).startsWith('en-')) || null;
 }
 
+/** Chu de doc: mau cau doc "sth" thanh "something" (giong vocab.spoken() phia may tinh) */
+export const spoken = (t) => String(t || '').replace(/\bsth\b/g, 'something').replace(/\bsb\b/g, 'somebody')
+  .replace(/\s*(?:…|\.\.\.)\s*/g, ', ').replace(/^[ ,]+|[ ,]+$/g, '');
+
 export function speak(text, acc) {
   if (!window.speechSynthesis || !text) return;
   try {
@@ -133,7 +137,7 @@ export function sayTerm(card, acc, btn) {
   stop();
   const token = playToken;
   const path = pathFor(card, acc);
-  if (!path) { speak(card.term, acc); return; }
+  if (!path) { speak(spoken(card.term), acc); return; }
   const ready = urls.get(path);
   if (ready) { playUrl(ready, card.term, acc, btn, token); return; }
   // Chua tai file Oxford: tai xong thi phat (trinh phat da mo khoa nen phat muon van duoc)
@@ -143,6 +147,6 @@ export function sayTerm(card, acc, btn) {
     if (btn) btn.classList.remove('playing');
     if (token !== playToken) return;               // da sang the khac / bam nghe lai
     if (u && Date.now() - t0 < 8000) playUrl(u, card.term, acc, btn, token);
-    else speak(card.term, acc);
+    else speak(spoken(card.term), acc);
   });
 }

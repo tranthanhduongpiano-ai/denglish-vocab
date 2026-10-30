@@ -15,7 +15,8 @@ import { ago, esc, norm, relTime, toast } from './util.js';
 
 const $ = (id) => document.getElementById(id);
 const LEVEL_COLORS = ['', 'var(--lv1)', 'var(--lv2)', 'var(--lv3)', 'var(--lv4)', 'var(--lv5)'];
-const KIND_VI = { word: 'từ', 'phrasal verb': 'cụm động từ', phrase: 'cụm từ', idiom: 'thành ngữ', collocation: 'collocation' };
+const KIND_VI = { word: 'từ', 'phrasal verb': 'cụm động từ', phrase: 'cụm từ', idiom: 'thành ngữ', collocation: 'collocation',
+                  pattern: 'mẫu câu' };
 const GRADE = {
   know: { label: 'Thuộc', c: 'var(--know)' },
   vague: { label: 'Mang máng', c: 'var(--vague)' },
@@ -496,7 +497,7 @@ function renderEdit(c) {
   h += '<label>Nghĩa tiếng Việt<input id="e_vi" value="' + esc(c.meaning_vi) + '" /></label>';
   h += '<label>Định nghĩa tiếng Anh<textarea id="e_def" style="min-height:70px">' + esc(c.def_en) + '</textarea></label>';
   h += '<div class="two"><label>IPA Anh (UK)<input id="e_uk" value="' + esc(c.ipa_uk) + '" /></label><label>IPA Mỹ (US)<input id="e_us" value="' + esc(c.ipa_us) + '" /></label></div>';
-  h += '<div class="three"><label>Loại<select id="e_kind">' + opt([['', '—'], ['word', 'Từ'], ['phrasal verb', 'Cụm động từ'], ['phrase', 'Cụm từ'], ['idiom', 'Thành ngữ'], ['collocation', 'Collocation']], c.kind) + '</select></label>' +
+  h += '<div class="three"><label>Loại<select id="e_kind">' + opt([['', '—'], ['word', 'Từ'], ['phrasal verb', 'Cụm động từ'], ['phrase', 'Cụm từ'], ['idiom', 'Thành ngữ'], ['collocation', 'Collocation'], ['pattern', 'Mẫu câu']], c.kind) + '</select></label>' +
        '<label>Từ loại<input id="e_pos" value="' + esc(c.pos) + '" /></label>' +
        '<label>Cấp độ<select id="e_cefr">' + opt([['', '—']].concat(store.CEFR.map(x => [x, x])), c.cefr) + '</select></label></div>';
   h += '<label>Ví dụ — mỗi dòng một câu, bản dịch sau dấu “|”; bọc từ cần nhấn trong **…**<textarea id="e_ex">' + esc(exText) + '</textarea></label>';
@@ -840,7 +841,7 @@ function frontHtml(c) {
     if (c.kind && c.kind !== 'word') h += '<div class="fr-sub">' + esc(KIND_VI[c.kind] || c.kind) + '</div>';
     return h + '<div class="fr-hint">Nhớ ra từ tiếng Anh chưa? Chạm để lật</div>';
   }
-  h += '<div class="fr-term' + (c.term.length > 14 ? ' long' : '') + '">' + esc(c.term) + '</div>';
+  h += '<div class="fr-term' + (c.term.length > 40 ? ' xlong' : c.term.length > 14 ? ' long' : '') + '">' + esc(c.term) + '</div>';
   const sub = c.kind && c.kind !== 'word' ? KIND_VI[c.kind] : c.pos;
   if (sub) h += '<div class="fr-sub">' + esc(sub) + '</div>';
   return h + '<button class="spk" data-say="' + audio.currentAccent() + '">🔊 Nghe</button><div class="fr-hint">Chạm để lật · vuốt trái nếu đã thuộc</div>';

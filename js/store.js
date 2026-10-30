@@ -5,14 +5,14 @@
  *   chua thuoc  -> ve cap 1, den han lai sau 10 phut (trong buoi on gap lai cuoi luot)
  */
 import { db, getMeta, setMeta } from './db.js';
-import { cleanTerm, isoSec, newId, norm, stamp, today, validTerm } from './util.js';
+import { cleanTerm, isoSec, newId, norm, stamp, today, validPattern, validTerm } from './util.js';
 
 const INTERVALS = [0, 1, 3, 7, 14, 30];
 const MAX_INTERVAL = 180;
 const RELEARN_MINUTES = 10;
 const DAY_START_HOUR = 3;
 const MAX_ITEMS = 500;
-export const KINDS = ['word', 'phrasal verb', 'phrase', 'idiom', 'collocation'];
+export const KINDS = ['word', 'phrasal verb', 'phrase', 'idiom', 'collocation', 'pattern'];   // pattern: mau cau
 export const CEFR = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 const LOCAL_ONLY = ['prev', 'tries'];
 
@@ -87,9 +87,10 @@ export async function addItems(items) {
   const added = [], existing = [];
   const idx = keyIndex();
   for (const it of (items || []).slice(0, MAX_ITEMS)) {
-    const term = cleanTerm(it && it.term);
+    const pattern = !!it && it.kind === 'pattern';        // boi den ca cau: luu thanh mau cau
+    const term = cleanTerm(it && it.term, pattern);
     const key = norm(term);
-    if (!validTerm(term) || !key) continue;
+    if (!(pattern ? validPattern(term) : validTerm(term)) || !key) continue;
     const note = String(it.note || '').trim().slice(0, 300);
     const hit = idx.get(key);
     if (hit) {
@@ -101,6 +102,7 @@ export async function addItems(items) {
     // context_vi: ban dich cau trong bai (bai Dictation) - AI lay nghia theo dung cach dich nay
     const contextVi = context ? String(it.context_vi || '').replace(/\s+/g, ' ').trim().slice(0, 600) : '';
     const c = newCard(term, note, context, String(it.source || '').slice(0, 200), String(it.source_url || '').slice(0, 300), contextVi);
+    if (pattern) c.kind = 'pattern';
     S.cards.set(c.id, c);
     idx.set(key, c);
     added.push(c);
@@ -110,7 +112,7 @@ export async function addItems(items) {
   return { added: added.map(light), existing: existing.map(light) };
 }
 
-const EDIT_TEXT = { term: 80, meaning_vi: 200, def_en: 400, ipa_uk: 80, ipa_us: 80, pos: 40,
+const EDIT_TEXT = { term: 220, meaning_vi: 200, def_en: 400, ipa_uk: 80, ipa_us: 80, pos: 40,
                     note_vi: 600, user_note: 300, emoji: 16, context: 400, context_vi: 600 };
 
 export function cleanExamples(items) {
@@ -130,8 +132,9 @@ export async function updateCard(id, patch) {
     if (!(field in patch)) continue;
     let value = String(patch[field] || '').replace(/[ \t]+/g, ' ').trim().slice(0, limit);
     if (field === 'term') {
-      value = cleanTerm(value);
-      if (!validTerm(value)) throw new VocabError('Từ / cụm từ không hợp lệ.');
+      const pattern = (patch.kind || c.kind) === 'pattern';
+      value = cleanTerm(value, pattern);
+      if (!(pattern ? validPattern(value) : validTerm(value))) throw new VocabError(pattern ? 'Mẫu câu không hợp lệ.' : 'Từ / cụm từ không hợp lệ.');
       const key = norm(value);
       const other = [...S.cards.values()].find(o => o.id !== id && (o.keys || [norm(o.term)]).includes(key));
       if (other) throw new VocabError('“' + other.term + '” đã có trong sổ từ.');

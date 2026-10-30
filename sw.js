@@ -1,6 +1,6 @@
 /* Denglish Vocab (iPhone) - service worker: luu khung app de mo duoc ca khi khong co mang.
  * Doi CACHE moi lan cap nhat app de iPhone tai ban moi. */
-const CACHE = 'denglish-vocab-v7';
+const CACHE = 'denglish-vocab-v8';
 const SHELL = [
   './', 'index.html', 'dictation.html', 'app.css', 'typecard.css', 'dictation.css', 'manifest.webmanifest',
   'js/app.js', 'js/store.js', 'js/db.js', 'js/util.js', 'js/parse.js', 'js/ai.js', 'js/prompts.js',

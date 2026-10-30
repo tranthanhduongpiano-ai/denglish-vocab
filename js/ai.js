@@ -8,7 +8,7 @@ import { getMeta } from './db.js';
 import { autoImage } from './images.js';
 import { CEFR, KINDS, S, cleanExamples, patchCard } from './store.js';
 import { ENRICH_SCHEMA, ENRICH_SYSTEM, PARSE_SCHEMA, PARSE_SYSTEM } from './prompts.js';
-import { cleanTerm, fetchT, norm, sleep, validTerm } from './util.js';
+import { cleanTerm, fetchT, norm, sleep, validPattern, validTerm } from './util.js';
 
 const BASE = 'https://generativelanguage.googleapis.com/v1beta/models/';
 const MODELS = ['gemini-3.8-flash', 'gemini-3.5-flash-lite'];
@@ -134,6 +134,7 @@ function enrichPrompt(jobs) {
   const parts = ['Soạn thẻ cho ' + jobs.length + ' mục sau:'];
   jobs.forEach((j, i) => {
     const lines = ['<item n="' + (i + 1) + '">', 'term: ' + j.term];
+    if (j.kind === 'pattern') lines.push('loại: mẫu câu');
     if (j.context) lines.push('câu ngữ cảnh: ' + j.context);
     if (j.context && j.context_vi) lines.push('bản dịch câu trong bài: ' + j.context_vi);
     if (j.note) lines.push('ghi chú của người học: ' + j.note);
@@ -176,7 +177,7 @@ export async function enrichPending() {
     for (;;) {
       const pending = [...S.cards.values()].filter(c => c.status === 'pending').slice(0, BATCH);
       if (!pending.length) break;
-      const jobs = pending.map(c => ({ id: c.id, term: c.term, context: c.context, context_vi: c.context_vi, note: c.user_note }));
+      const jobs = pending.map(c => ({ id: c.id, term: c.term, kind: c.kind, context: c.context, context_vi: c.context_vi, note: c.user_note }));
       let data;
       try {
         data = await aiCall(ENRICH_SYSTEM, enrichPrompt(jobs), ENRICH_SCHEMA, 12000);
@@ -203,9 +204,11 @@ export async function enrichPending() {
         const it = byN.get(i + 1);
         if (!it) { await patchCard(c.id, { status: 'basic', error: 'AI chưa soạn được mục này.' }); continue; }
         const fields = aiFields(it);
-        const term = cleanTerm(it.term);
+        const pattern = c.kind === 'pattern';
+        if (pattern) Object.assign(fields, { kind: 'pattern', pos: fields.pos || 'sentence pattern' }, { ipa_uk: '', ipa_us: '' });
+        const term = cleanTerm(it.term, pattern);
         const key = norm(term);
-        if (validTerm(term) && term !== c.term && ![...S.cards.values()].some(o => o.id !== c.id && norm(o.term) === key)) {
+        if ((pattern ? validPattern(term) && term.split(' ').length >= 3 : validTerm(term)) && term !== c.term && ![...S.cards.values()].some(o => o.id !== c.id && norm(o.term) === key)) {
           fields.seen_as = c.term;
           fields.term = term;
           fields.keys = [...new Set((c.keys || []).concat([key]))];

@@ -9,10 +9,16 @@ export function norm(t) {
   return t.replace(/^[ .,;:!?"“”()[\]{}*_`~\-–—•]+|[ .,;:!?"“”()[\]{}*_`~\-–—•]+$/g, '');
 }
 
-export function cleanTerm(t) {
+export function cleanTerm(t, pattern) {
   t = String(t || '').replace(/\s+/g, ' ').trim().replace(/[’‘]/g, "'");
   t = t.replace(/^[ .,;:!?"“”*_`~•–—]+|[ .,;:!?"“”*_`~•–—]+$/g, '');
-  return t.slice(0, 80);
+  return t.slice(0, pattern ? 220 : 80);
+}
+
+/** Mau cau ("it's less about sth and more about sth"): toi da 40 chu, duoc co so va dau cau (giong vocab._valid_pattern) */
+export function validPattern(t) {
+  if (!t || t.length > 220 || t.split(/\s+/).length > 40 || (t.match(/[A-Za-z]+/g) || []).length < 3 || VI_ONLY.test(t)) return false;
+  return /^[A-Za-zÀ-ÖØ-öø-ÿ0-9 '\-/().,!?&;:%$"…]+$/.test(t);
 }
 
 export const VI_CHARS = /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i;

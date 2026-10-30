@@ -24,10 +24,10 @@ window.TypeCard = (() => {
     skip: 'Đáp án',
   };
 
-  /** The nay go duoc khong: co nghia tieng Viet, dai vua phai */
+  /** The nay go duoc khong: co nghia tieng Viet, dai vua phai (mau cau thi khong - qua dai de go) */
   function eligible(card) {
     const n = letters(card && card.term).length;
-    return !!(card && card.meaning_vi && n >= 2 && n <= 32);
+    return !!(card && card.meaning_vi && card.kind !== 'pattern' && n >= 2 && n <= 32);
   }
 
   /** Chon kieu cho the thu `pos` (luu vao card._type: 'type' | 'swipe').

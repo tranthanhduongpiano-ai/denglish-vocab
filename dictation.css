@@ -225,15 +225,18 @@ html.in-lesson, html.in-lesson body { height: 100%; overflow: hidden; }
 .wordpop .wp-phr-meta { color: var(--text-fade); font-size: .72rem; margin-top: 3px; text-align: center; }
 .wordpop .wp-phr-meta span { color: var(--text-dim); }
 
-/* boi den cum tu / thanh ngu -> nut them */
+/* boi den cum tu / ca cau -> nut "Them cum" va "Mau cau" */
+.phrase-chips {
+  position: fixed; z-index: 125; display: none; gap: 6px; max-width: calc(100vw - 16px);
+}
+.phrase-chips.show { display: flex; }
 .phrase-chip {
-  position: fixed; z-index: 125; display: none; max-width: calc(100vw - 16px);
-  padding: 8px 14px; border-radius: 999px; font-size: .84rem; font-weight: 600; white-space: nowrap;
+  min-width: 0; padding: 8px 14px; border-radius: 999px; font-size: .84rem; font-weight: 600; white-space: nowrap;
   overflow: hidden; text-overflow: ellipsis;
   background: var(--accent); color: var(--accent-ink); box-shadow: var(--shadow);
 }
-.phrase-chip.show { display: block; }
-.phrase-chip.done { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+.phrase-chip.pattern { flex: none; background: var(--surface); color: var(--text); border: 1px solid var(--accent); }
+.phrase-chips.done .phrase-chip { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
 
 .w { border-radius: 3px; transition: background .12s; }
 .w:hover { background: rgba(76, 141, 255, .18); cursor: pointer; }

@@ -390,6 +390,7 @@ html[data-theme="dark"] .fc-in { box-shadow: 0 14px 40px rgba(0, 0, 0, .5); }
 .front .fr-emoji { font-size: 3.2rem; margin-bottom: 14px; }
 .front .fr-term { font-size: clamp(2rem, 9vw, 2.9rem); font-weight: 800; letter-spacing: -.025em; line-height: 1.15; word-break: break-word; }
 .front .fr-term.long { font-size: clamp(1.5rem, 6.4vw, 2.1rem); }
+.front .fr-term.xlong { font-size: clamp(1.15rem, 4.8vw, 1.5rem); line-height: 1.35; letter-spacing: -.01em; }
 .front .fr-term.vi { color: var(--accent); }
 .front .fr-sub { margin-top: 10px; color: var(--text-fade); font-size: .9rem; }
 .front .spk { margin-top: 18px; padding: 8px 16px; font-size: .85rem; }

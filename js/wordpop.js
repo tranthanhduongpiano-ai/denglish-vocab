@@ -3,7 +3,8 @@
  * Bang tra tu KHONG tat khi dua chuot vao no: ban bam duoc nut nghe giong Anh/My,
  * mo trang Oxford, them tu vao so tu vung. Bang chi tat khi chuot roi ca tu lan bang.
  * Tren dien thoai (khong co chuot): cham vao tu de mo bang, cham ra ngoai de tat.
- * Boi den mot cum tu / thanh ngu (2-8 tu) thi hien nut "Them cum tu" ngay duoi.
+ * Boi den mot cum tu / thanh ngu (2-8 tu) thi hien nut "Them cum tu" ngay duoi; boi den ca cau / ve cau
+ * (4-40 tu) thi co nut "Mau cau" - luu thanh the mau cau de hoc cach noi.
  * Tu dang tra nam trong mot cum dong tu / thanh ngu cua Oxford co mat trong cau (vd "conjure up")
  * thi bang tra hien them nut "Them cum" ben duoi nut them tu don - muon luu rieng tu nao cung duoc.
  *
@@ -611,12 +612,13 @@ window.WordPop = (() => {
     return t && t !== 'Denglish' ? t : '';
   }
 
-  async function addTerm(term, ctxEl, btn) {
+  async function addTerm(term, ctxEl, btn, kind) {
     if (!term || (btn && (btn.disabled || btn.classList.contains('done')))) return;
     if (btn) { btn.disabled = true; btn.textContent = 'Đang thêm…'; }
     // Kem ban dich cau trong bai: AI lay nghia theo dung cach bai dich ("tai nghe gia re thuoc loai binh dan")
     const item = { term, context: contextOf(ctxEl), context_vi: viOf(ctxEl), source: pageSource(),
                    source_url: location.pathname + location.search };
+    if (kind === 'pattern') item.kind = 'pattern';      // mau cau: AI viet thanh khung dung lai duoc
     try {
       let d;
       if (options.saveTerm) d = await options.saveTerm(item);
@@ -641,25 +643,30 @@ window.WordPop = (() => {
     }
   }
 
-  /* ---------- boi den cum tu -> nut "Them cum tu" ---------- */
+  /* ---------- boi den cum tu / ca cau -> nut "Them cum" va "Mau cau" ----------
+   * 2-8 chu: them cum tu (tu 4 chu co them nut luu thanh mau cau). 9-40 chu: chi luu mau cau
+   * ("it's less about particular foods and more about particular nutrients" -> AI viet thanh khung dung lai). */
   let chip = null, selTimer = null, chipCtx = null;
+  const short = (t, n) => (t.length > n ? t.slice(0, n - 2) + '…' : t);
 
   function ensureChip() {
     if (chip) return chip;
-    chip = document.createElement('button');
-    chip.className = 'phrase-chip';
-    chip.type = 'button';
+    chip = document.createElement('div');
+    chip.className = 'phrase-chips';
     document.body.appendChild(chip);
     chip.addEventListener('mousedown', (e) => e.preventDefault());   // giu nguyen vung boi den
     chip.addEventListener('click', async (e) => {
+      const b = e.target.closest('button[data-kind]');
       e.preventDefault();
       const term = chip.dataset.term;
-      if (!term || chip.classList.contains('done')) return;
-      chip.textContent = 'Đang thêm…';
-      const ok = await addTerm(term, chipCtx, null).catch(() => false);
+      if (!b || !term || chip.classList.contains('done')) return;
+      const kind = b.dataset.kind;
       chip.classList.add('done');
-      chip.textContent = ok ? '✓ Đã thêm “' + term + '”' : 'Chưa thêm được';
-      setTimeout(hideChip, 1600);
+      chip.innerHTML = '<span class="phrase-chip">Đang thêm…</span>';
+      const ok = await addTerm(term, chipCtx, null, kind).catch(() => false);
+      chip.innerHTML = '<span class="phrase-chip">' + (ok ? '✓ Đã lưu ' + (kind === 'pattern' ? 'mẫu câu' : 'cụm') +
+        ' “' + esc(short(term, 30)) + '”' : 'Chưa thêm được') + '</span>';
+      setTimeout(hideChip, 1800);
     });
     return chip;
   }
@@ -676,13 +683,13 @@ window.WordPop = (() => {
   function checkSelection() {
     const sel = window.getSelection && window.getSelection();
     if (!sel || sel.isCollapsed || !sel.rangeCount) { if (chip && !chip.classList.contains('done')) hideChip(); return; }
-    const raw = sel.toString().replace(/\s+/g, ' ').trim();
-    const term = raw.replace(/^[^A-Za-z']+|[^A-Za-z')]+$/g, '');
+    const raw = sel.toString().replace(/\s+/g, ' ').trim().replace(/[’‘]/g, "'");
+    const term = raw.replace(/^[^A-Za-z0-9']+|[^A-Za-z0-9')%]+$/g, '');
     const words = term.split(' ');
-    if (words.length < 2 || words.length > 8 || term.length > 80 || !/^[A-Za-z][A-Za-z' ,\-()/]*$/.test(term)) {
-      hideChip();
-      return;
-    }
+    const phraseOk = words.length >= 2 && words.length <= 8 && term.length <= 80 && /^[A-Za-z][A-Za-z' ,\-()/]*$/.test(term);
+    const patternOk = words.length >= 4 && words.length <= 40 && term.length <= 220 &&
+      /^[A-Za-z0-9"'(][A-Za-z0-9' ,\-()/;:%$"…]*$/.test(term);
+    if (!phraseOk && !patternOk) { hideChip(); return; }
     const range = sel.getRangeAt(0);
     let node = range.commonAncestorContainer;
     if (node.nodeType !== 1) node = node.parentElement;
@@ -694,7 +701,9 @@ window.WordPop = (() => {
     if (c.dataset.term === term && c.classList.contains('show')) return;
     c.classList.remove('done');
     c.dataset.term = term;
-    c.textContent = '＋ Thêm cụm “' + (term.length > 34 ? term.slice(0, 32) + '…' : term) + '”';
+    c.innerHTML = (phraseOk ? '<button type="button" class="phrase-chip" data-kind="">＋ Thêm cụm “' + esc(short(term, 34)) + '”</button>' : '') +
+      (patternOk ? '<button type="button" class="phrase-chip pattern" data-kind="pattern" title="Lưu cả câu làm mẫu câu để học cách nói">＋ ' +
+        (phraseOk ? 'Mẫu câu' : 'Lưu mẫu câu “' + esc(short(term, 30)) + '”') + '</button>' : '');
     c.classList.add('show');
     const w = c.offsetWidth, h = c.offsetHeight;
     let top = r.bottom + 10;
